@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request
+from flask import send_from_directory
 from flask_cors import CORS
 import database
 import os
@@ -80,6 +81,10 @@ def buscar_pessoa(pessoa_id):
         })
     else:
         return jsonify({'error': 'Pessoa não encontrada'}), 404
+
+@app.route('/')
+def index():
+    return send_from_directory('../frontend', 'index.html')
 
 if __name__ == "__main__":
     app.run(debug=True)
