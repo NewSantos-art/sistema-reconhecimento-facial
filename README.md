@@ -30,4 +30,4 @@ Sistema web desenvolvido para a empresa fictícia FaceID Security, capaz de iden
 
 ## Autor
 
-NovoSantos-art
+NewSantos-art
