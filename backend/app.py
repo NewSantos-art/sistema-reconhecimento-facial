@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request
 from flask import send_from_directory
 from flask_cors import CORS
 import database
+import uuid
 import os
 
 app = Flask(__name__)
@@ -53,7 +54,7 @@ def upload_imagem(pessoa_id):
         return jsonify({'error': 'Nenhuma imagem enviada'}), 400
 
     imagem = request.files['imagem']
-    caminho_imagem = f'backend/uploads/{pessoa_id}_{imagem.filename}'
+    caminho_imagem = f'backend/uploads/{pessoa_id}_{uuid.uuid4().hex}_{imagem.filename}'
     imagem.save(caminho_imagem)
 
     conn = database.conectar()

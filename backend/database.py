@@ -17,7 +17,7 @@ def criar_tabela():
         )
     ''')
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS veiculos (
+        CREATE TABLE IF NOT EXISTS imagens (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             pessoa_id INTEGER NOT NULL,
             caminho_imagem VARCHAR(255) NOT NULL,
