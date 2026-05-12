@@ -2,18 +2,25 @@ async function cadastrar() {
     const nome = document.getElementById('nome').value
     const cpf = document.getElementById('cpf').value
     const fotos = document.getElementById('fotos').files
-    const mensagem = document.getElementById('mensagem')
+    const modalConteudo = document.getElementById('modalConteudo')
+    const modal = new bootstrap.Modal(document.getElementById('modalResultado'))
+
+    if (!nome || !cpf) {
+        modalConteudo.innerHTML = '<div class="alert alert-danger">Nome e CPF são obrigatórios!</div>'
+        modal.show()
+        return
+    }
+
+    if (fotos.length < 3) {
+        modalConteudo.innerHTML = '<div class="alert alert-danger">Envie pelo menos 3 fotos!</div>'
+        modal.show()
+        return
+    }
 
     try {
-        if (!nome || !cpf) {
-            mensagem.innerHTML = '<div class="alert alert-danger">Nome e CPF são obrigatórios!</div>'
-            return
-        }
-
-        if (fotos.length < 3) {
-            mensagem.innerHTML = '<div class="alert alert-danger">Envie pelo menos 3 fotos!</div>'
-            return
-        }
+        modalConteudo.innerHTML = '<p class="text-center">⏳ Cadastrando... aguarde.</p>'
+        document.getElementById('modalFooter').style.display = 'none'
+        modal.show()
 
         const resposta = await fetch(`${API}/pessoas`, {
             method: 'POST',
@@ -24,7 +31,7 @@ async function cadastrar() {
         const dados = await resposta.json()
 
         if (!resposta.ok) {
-            mensagem.innerHTML = `<div class="alert alert-danger">${dados.error}</div>`
+            modalConteudo.innerHTML = `<div class="alert alert-danger">${dados.error}</div>`
             return
         }
 
@@ -37,12 +44,19 @@ async function cadastrar() {
             })
         }
 
-        mensagem.innerHTML = '<div class="alert alert-success">Pessoa cadastrada com sucesso!</div>'
-        setTimeout(() => { mensagem.innerHTML = '' }, 45000)
-    
+        modalConteudo.innerHTML = `
+            <div class="alert alert-success">
+                <h5>✅ Pessoa cadastrada com sucesso!</h5>
+                <p><strong>Nome:</strong> ${nome}</p>
+                <p><strong>ID:</strong> ${dados.id}</p>
+                <p><strong>Fotos enviadas:</strong> ${fotos.length}</p>
+            </div>
+        `
+        document.getElementById('modalFooter').style.display = 'flex'
+        
+
     } catch(erro) {
-        mensagem.innerHTML = `<div class="alert alert-danger">Erro: ${erro.message}</div>`
+        modalConteudo.innerHTML = `<div class="alert alert-danger">Erro: ${erro.message}</div>`
         console.error(erro)
     }
- 
 }

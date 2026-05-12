@@ -1,8 +1,12 @@
 from flask import Flask, jsonify, request
 from flask import send_from_directory
 from flask_cors import CORS
+from PIL import Image
+import numpy as np
+import face_recognition
 import database
 import uuid
+import cv2
 import os
 
 app = Flask(__name__)
@@ -86,6 +90,81 @@ def buscar_pessoa(pessoa_id):
 @app.route('/')
 def index():
     return send_from_directory('../frontend', 'index.html')
+
+@app.route('/<path:filename>')
+def frontend(filename):
+    return send_from_directory('../frontend', filename)
+
+@app.route('/reconhecer', methods=['POST'])
+def reconhecer():
+    try:
+        if 'imagem' not in request.files:
+            return jsonify({'error': 'Nenhuma imagem enviada'}), 400
+
+        imagem_enviada = request.files['imagem']
+        caminho_temp = os.path.join(os.path.dirname(__file__), 'uploads', 'temp_reconhecimento.jpg')
+        imagem_enviada.save(caminho_temp)
+
+        img_pil = Image.open(caminho_temp).convert('RGB')
+        img_pil = img_pil.resize((640, 480))
+        imagem = np.ascontiguousarray(np.array(img_pil, dtype=np.uint8))
+        locations = face_recognition.face_locations(imagem, number_of_times_to_upsample=2)
+        encodings_enviados = face_recognition.face_encodings(imagem, locations)
+        
+        if len(encodings_enviados) == 0:
+            return jsonify({'error': 'Nenhum rosto detectado na imagem'})
+
+        encoding_enviado = encodings_enviados[0]
+
+        conn = database.conectar()
+        cursor = conn.cursor()
+        cursor.execute('SELECT pessoa_id, caminho_imagem FROM imagens')
+        imagens_cadastradas = cursor.fetchall()
+        conn.close()
+
+        melhor_match = None
+        melhor_distancia = 1.0
+
+        for pessoa_id, caminho in imagens_cadastradas:
+            try:
+                img_pil_cad = Image.open(caminho).convert('RGB')
+                img_pil_cad = img_pil_cad.resize((640, 480))
+                img_cadastrada = np.ascontiguousarray(np.array(img_pil_cad, dtype=np.uint8))
+                locs_cadastradas = face_recognition.face_locations(img_cadastrada, number_of_times_to_upsample=2)
+                encodings_cadastrados = face_recognition.face_encodings(img_cadastrada, locs_cadastradas)
+                if len(encodings_cadastrados) == 0:
+                    continue
+                distancia = face_recognition.face_distance([encodings_cadastrados[0]], encoding_enviado)[0]
+                if distancia < melhor_distancia:
+                    melhor_distancia = distancia
+                    melhor_match = pessoa_id
+            except Exception as e:
+                print(f"Erro ao processar imagem {caminho}: {str(e)}")
+                continue
+
+        if melhor_match is None or melhor_distancia > 0.6:
+            return jsonify({'resultado': 'Pessoa não identificada'})
+
+        conn = database.conectar()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM pessoas WHERE id = ?', (melhor_match,))
+        pessoa = cursor.fetchone()
+        conn.close()
+
+        confianca = round((1 - melhor_distancia) * 100, 2)
+
+        return jsonify({
+            'resultado': 'Pessoa identificada',
+            'nome': pessoa[1],
+            'id': pessoa[0],
+            'confianca': f'{confianca}%'
+        })
+
+    except Exception as e:
+        print(f"Erro no reconhecimento: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)
