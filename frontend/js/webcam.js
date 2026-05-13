@@ -39,6 +39,7 @@ async function capturarEReconhecer() {
         try {
             const formData = new FormData()
             formData.append('imagem', blob, 'webcam.jpg')
+            formData.append('metodo', 'webcam')
 
             const resposta = await fetch(`${API}/reconhecer`, {
                 method: 'POST',

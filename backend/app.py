@@ -125,6 +125,8 @@ def reconhecer():
         melhor_match = None
         melhor_distancia = 1.0
 
+        metodo = request.form.get('metodo', 'imagem')
+
         for pessoa_id, caminho in imagens_cadastradas:
             try:
                 img_pil_cad = Image.open(caminho).convert('RGB')
@@ -141,8 +143,16 @@ def reconhecer():
             except Exception as e:
                 print(f"Erro ao processar imagem {caminho}: {str(e)}")
                 continue
-
+        
+        conn = database.conectar()
+        cursor = conn.cursor()
         if melhor_match is None or melhor_distancia > 0.6:
+            conn = database.conectar()
+            cursor = conn.cursor()
+            cursor.execute('''INSERT INTO historico (pessoa_id, nome, confianca, metodo)
+                VALUES (?, ?, ?, ?)''', (None, 'Desconhecido', '0%', metodo))
+            conn.commit()
+            conn.close()
             return jsonify({'resultado': 'Pessoa não identificada'})
 
         conn = database.conectar()
@@ -152,6 +162,13 @@ def reconhecer():
         conn.close()
 
         confianca = round((1 - melhor_distancia) * 100, 2)
+
+        conn = database.conectar()
+        cursor = conn.cursor()
+        cursor.execute('''INSERT INTO historico (pessoa_id, nome, confianca, metodo)
+            VALUES (?, ?, ?, ?)''', (pessoa[0], pessoa[1], f'{confianca}%', metodo))
+        conn.commit()
+        conn.close()
 
         return jsonify({
             'resultado': 'Pessoa identificada',
@@ -164,7 +181,26 @@ def reconhecer():
         print(f"Erro no reconhecimento: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/historico', methods=['GET'])
+def listar_historico():
+    conn = database.conectar()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM historico ORDER BY data_hora DESC')
+    registros = cursor.fetchall()
+    conn.close()
 
+    resultado = []
+    for r in registros:
+        resultado.append({
+            'id': r[0],
+            'pessoa_id': r[1],
+            'nome': r[2],
+            'confianca': r[3],
+            'metodo': r[4],
+            'data_hora': r[5]
+        })
+
+    return jsonify(resultado)
 
 if __name__ == "__main__":
     app.run(debug=True)

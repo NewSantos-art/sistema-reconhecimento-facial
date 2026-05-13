@@ -24,9 +24,21 @@ def criar_tabela():
             FOREIGN KEY (pessoa_id) REFERENCES pessoas(id)
         )
     ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS historico (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            pessoa_id INTEGER,
+            nome VARCHAR(100),
+            confianca VARCHAR(10),
+            metodo VARCHAR(20),
+            data_hora DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
     conn.commit()
     conn.close()
     print("Banco de dados criado com sucesso!")
+
 
 if __name__ == "__main__":
     criar_tabela()

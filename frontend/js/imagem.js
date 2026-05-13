@@ -11,6 +11,7 @@ async function reconhecer() {
     try {
         const formData = new FormData()
         formData.append('imagem', imagem)
+        formData.append('metodo', 'imagem')
 
         modalConteudo.innerHTML = '<p class="text-center">⏳ Analisando imagem... aguarde.</p>'
         modal.show()
