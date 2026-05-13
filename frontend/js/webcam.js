@@ -53,7 +53,7 @@ async function capturarEReconhecer() {
             }
 
             if (dados.resultado === 'Pessoa identificada') {
-                modalConteudo.innerHTML = `
+                const html = `
                     <div class="alert alert-success">
                         <h5>✅ Pessoa Identificada!</h5>
                         <p><strong>Nome:</strong> ${dados.nome}</p>
@@ -61,8 +61,12 @@ async function capturarEReconhecer() {
                         <p><strong>Confiança:</strong> ${dados.confianca}</p>
                     </div>
                 `
+                modalConteudo.innerHTML = html
+                document.getElementById('resultado').innerHTML = html
             } else {
-                modalConteudo.innerHTML = '<div class="alert alert-warning">⚠️ Pessoa não identificada no sistema.</div>'
+                const html = '<div class="alert alert-warning">⚠️ Pessoa não identificada.</div>'
+                modalConteudo.innerHTML = html
+                document.getElementById('resultado').innerHTML = html
             }
 
         } catch(erro) {
