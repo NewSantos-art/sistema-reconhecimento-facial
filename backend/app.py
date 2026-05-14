@@ -214,5 +214,16 @@ def listar_historico():
 
     return jsonify(resultado)
 
+@app.route('/login', methods=['POST'])
+def login():
+    dados = request.get_json()
+    usuario = dados.get('usuario')
+    senha = dados.get('senha')
+
+    if usuario == 'admin' and senha == 'admin123':
+        return jsonify({'success': True, 'mensagem': 'Login realizado com sucesso!'})
+    else:
+        return jsonify({'success': False, 'mensagem': 'Usuário ou senha incorretos!'}), 401
+
 if __name__ == "__main__":
     app.run(debug=True)
