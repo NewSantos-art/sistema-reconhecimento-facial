@@ -36,6 +36,7 @@ async function reconhecer() {
                     <p><strong>ID:</strong> ${dados.id}</p>
                     <p><strong>Confiança:</strong> ${dados.confianca}</p>
                 </div>
+                <img src="${dados.imagem_marcada}?t=${Date.now()}" class="img-fluid rounded" alt="Rosto marcado">
             `
         } else {
             modalConteudo.innerHTML = '<div class="alert alert-warning">⚠️ Pessoa não identificada no sistema.</div>'

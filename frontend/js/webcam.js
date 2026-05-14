@@ -61,6 +61,7 @@ async function capturarEReconhecer() {
                         <p><strong>ID:</strong> ${dados.id}</p>
                         <p><strong>Confiança:</strong> ${dados.confianca}</p>
                     </div>
+                    <img src="${dados.imagem_marcada}?t=${Date.now()}" class="img-fluid rounded mt-2" alt="Rosto marcado">
                 `
                 modalConteudo.innerHTML = html
                 document.getElementById('resultado').innerHTML = html

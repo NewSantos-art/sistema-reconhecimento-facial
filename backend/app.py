@@ -109,6 +109,12 @@ def reconhecer():
         img_pil = img_pil.resize((640, 480))
         imagem = np.ascontiguousarray(np.array(img_pil, dtype=np.uint8))
         locations = face_recognition.face_locations(imagem, number_of_times_to_upsample=2)
+        imagem_marcada = imagem.copy()
+        for (top, right, bottom, left) in locations:
+            cv2.rectangle(imagem_marcada, (left, top), (right, bottom), (0, 255, 0), 2)
+
+        caminho_marcado = os.path.join(os.path.dirname(__file__), 'uploads', 'resultado_marcado.jpg')
+        cv2.imwrite(caminho_marcado, cv2.cvtColor(imagem_marcada, cv2.COLOR_RGB2BGR))
         encodings_enviados = face_recognition.face_encodings(imagem, locations)
         
         if len(encodings_enviados) == 0:
@@ -174,12 +180,18 @@ def reconhecer():
             'resultado': 'Pessoa identificada',
             'nome': pessoa[1],
             'id': pessoa[0],
-            'confianca': f'{confianca}%'
+            'confianca': f'{confianca}%',
+            'imagem_marcada': '/imagem-marcada'
         })
 
     except Exception as e:
         print(f"Erro no reconhecimento: {str(e)}")
         return jsonify({'error': str(e)}), 500
+
+@app.route('/imagem-marcada')
+def imagem_marcada():
+    caminho = os.path.join(os.path.dirname(__file__), 'uploads', 'resultado_marcado.jpg')
+    return send_from_directory(os.path.join(os.path.dirname(__file__), 'uploads'), 'resultado_marcado.jpg')
 
 @app.route('/historico', methods=['GET'])
 def listar_historico():
